@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == "I4kOHEoO7EeSDMBzlxe9SAwkIN22";
+    }
+    match /products/{id} {
+      allow read: if resource.data.pub == true || isAdmin();
+      allow write: if isAdmin();
+    }
+    match /settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /orders/{id} {
+      allow create: if request.resource.data.status == "Pending"
+        && request.resource.data.name is string && request.resource.data.name.size() < 200
+        && request.resource.data.tot is number
+        && request.resource.data.no == id;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
